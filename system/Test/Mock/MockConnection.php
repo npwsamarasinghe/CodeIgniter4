@@ -49,12 +49,10 @@ class MockConnection extends BaseConnection
 	 * @param string  $queryClass
 	 *
 	 * @return BaseResult|Query|false
-	 *
-	 * @todo BC set $queryClass default as null in 4.1
 	 */
-	public function query(string $sql, $binds = null, bool $setEscapeFlags = true, string $queryClass = '')
+	public function query(string $sql, $binds = null, bool $setEscapeFlags = true, string $queryClass = 'CodeIgniter\\Database\\Query')
 	{
-		$queryClass = str_replace('Connection', 'Query', static::class);
+		$queryClass = str_replace('Connection', 'Query', get_class($this));
 
 		$query = new $queryClass($this);
 

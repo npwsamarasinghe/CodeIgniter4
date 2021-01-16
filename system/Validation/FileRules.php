@@ -263,7 +263,7 @@ class FileRules
 				return true;
 			}
 
-			if (! in_array($file->guessExtension(), $params, true))
+			if (! in_array($file->getExtension(), $params, true))
 			{
 				return false;
 			}

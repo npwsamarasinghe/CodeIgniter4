@@ -277,10 +277,7 @@ class Time extends DateTime
 	 */
 	public static function createFromFormat($format, $datetime, $timeZone = null)
 	{
-		if (! $date = parent::createFromFormat($format, $datetime))
-		{
-			throw I18nException::forInvalidFormat($format);
-		}
+		$date = parent::createFromFormat($format, $datetime);
 
 		return new Time($date->format('Y-m-d H:i:s'), $timeZone);
 	}

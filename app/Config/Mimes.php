@@ -12,9 +12,6 @@ namespace Config;
  * the most common one should be first in the array to aid the guess*
  * methods. The same applies when more than one mime-type exists for a
  * single extension.
- *
- * When working with mime types, please make sure you have the ´fileinfo´
- * extension enabled to reliably detect the media types.
  */
 
 class Mimes
@@ -36,6 +33,7 @@ class Mimes
 			'text/csv',
 			'text/x-comma-separated-values',
 			'text/comma-separated-values',
+			'application/octet-stream',
 			'application/vnd.ms-excel',
 			'application/x-csv',
 			'text/x-csv',
@@ -71,6 +69,7 @@ class Mimes
 			'application/pdf',
 			'application/force-download',
 			'application/x-download',
+			'binary/octet-stream',
 		],
 		'ai'    => [
 			'application/pdf',
@@ -463,10 +462,12 @@ class Mimes
 		'srt'   => [
 			'text/srt',
 			'text/plain',
+			'application/octet-stream',
 		],
 		'vtt'   => [
 			'text/vtt',
 			'text/plain',
+			'application/octet-stream',
 		],
 		'ico'   => [
 			'image/x-icon',
@@ -508,20 +509,11 @@ class Mimes
 
 		$proposedExtension = trim(strtolower($proposedExtension));
 
-		if ($proposedExtension !== '')
+		if ($proposedExtension !== '' && array_key_exists($proposedExtension, static::$mimes) && in_array($type, is_string(static::$mimes[$proposedExtension]) ? [static::$mimes[$proposedExtension]] : static::$mimes[$proposedExtension], true))
 		{
-			if(array_key_exists($proposedExtension, static::$mimes) && in_array($type, is_string(static::$mimes[$proposedExtension]) ? [static::$mimes[$proposedExtension]] : static::$mimes[$proposedExtension], true))
-			{
-				// The detected mime type matches with the proposed extension.
-				return $proposedExtension;
-			}
-
-			// An extension was proposed, but the media type does not match the mime type list.
-			return null;
+			return $proposedExtension;
 		}
 
-		// Reverse check the mime type list if no extension was proposed.
-		// This search is order sensitive!
 		foreach (static::$mimes as $ext => $types)
 		{
 			if ((is_string($types) && $types === $type) || (is_array($types) && in_array($type, $types, true)))

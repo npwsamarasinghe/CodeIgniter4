@@ -85,12 +85,11 @@ class Model extends BaseModel
 	protected $tempData = [];
 
 	/**
-	 * Escape array that maps usage of escape
-	 * flag for every parameter.
+	 * Escape Parameter to be passed in do methods
 	 *
-	 * @var array
+	 * @var boolean|null
 	 */
-	protected $escape = [];
+	protected $escape = null;
 
 	// endregion
 
@@ -258,7 +257,7 @@ class Model extends BaseModel
 	protected function doInsert(array $data)
 	{
 		$escape       = $this->escape;
-		$this->escape = [];
+		$this->escape = null;
 
 		// Require non empty primaryKey when
 		// not using auto-increment feature
@@ -267,15 +266,10 @@ class Model extends BaseModel
 			throw DataException::forEmptyPrimaryKey('insert');
 		}
 
-		$builder = $this->builder();
-
-		// Must use the set() method to ensure to set the correct escape flag
-		foreach ($data as $key => $val)
-		{
-			$builder->set($key, $val, $escape[$key] ?? null);
-		}
-
-		$result = $builder->insert();
+		// Must use the set() method to ensure objects get converted to arrays
+		$result = $this->builder()
+			->set($data, '', $escape)
+			->insert();
 
 		// If insertion succeeded then save the insert ID
 		if ($result->resultID)
@@ -335,7 +329,7 @@ class Model extends BaseModel
 	protected function doUpdate($id = null, $data = null): bool
 	{
 		$escape       = $this->escape;
-		$this->escape = [];
+		$this->escape = null;
 
 		$builder = $this->builder();
 
@@ -344,13 +338,10 @@ class Model extends BaseModel
 			$builder = $builder->whereIn($this->table . '.' . $this->primaryKey, $id);
 		}
 
-		// Must use the set() method to ensure to set the correct escape flag
-		foreach ($data as $key => $val)
-		{
-			$builder->set($key, $val, $escape[$key] ?? null);
-		}
-
-		return $builder->update();
+		// Must use the set() method to ensure objects get converted to arrays
+		return $builder
+			->set($data, '', $escape)
+			->update();
 	}
 
 	/**
@@ -638,12 +629,8 @@ class Model extends BaseModel
 	{
 		$data = is_array($key) ? $key : [$key => $value];
 
-		foreach ($data as $k => $v)
-		{
-			$this->tempData['escape'][$k] = $escape;
-		}
-
-		$this->tempData['data'] = array_merge($this->tempData['data'] ?? [], $data);
+		$this->tempData['escape'] = $escape;
+		$this->tempData['data']   = array_merge($this->tempData['data'] ?? [], $data);
 
 		return $this;
 	}
@@ -686,21 +673,12 @@ class Model extends BaseModel
 	 */
 	public function insert($data = null, bool $returnID = true)
 	{
-		if (! empty($this->tempData['data']))
+		if (empty($data))
 		{
-			if (empty($data))
-			{
-				$data = $this->tempData['data'] ?? null;
-			}
-			else
-			{
-				$data = $this->transformDataToArray($data, 'insert');
-				$data = array_merge($this->tempData['data'], $data);
-			}
+			$data           = $this->tempData['data'] ?? null;
+			$this->escape   = $this->tempData['escape'] ?? null;
+			$this->tempData = [];
 		}
-
-		$this->escape   = $this->tempData['escape'] ?? [];
-		$this->tempData = [];
 
 		return parent::insert($data, $returnID);
 	}
@@ -718,21 +696,12 @@ class Model extends BaseModel
 	 */
 	public function update($id = null, $data = null): bool
 	{
-		if (! empty($this->tempData['data']))
+		if (empty($data))
 		{
-			if (empty($data))
-			{
-				$data = $this->tempData['data'] ?? null;
-			}
-			else
-			{
-				$data = $this->transformDataToArray($data, 'update');
-				$data = array_merge($this->tempData['data'], $data);
-			}
+			$data           = $this->tempData['data'] ?? null;
+			$this->escape   = $this->tempData['escape'] ?? null;
+			$this->tempData = [];
 		}
-
-		$this->escape   = $this->tempData['escape'] ?? [];
-		$this->tempData = [];
 
 		return parent::update($id, $data);
 	}

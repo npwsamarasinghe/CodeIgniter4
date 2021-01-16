@@ -2,8 +2,6 @@
 
 namespace CodeIgniter\Models;
 
-use CodeIgniter\Database\Exceptions\DataException;
-use InvalidArgumentException;
 use Tests\Support\Models\EntityModel;
 use Tests\Support\Models\JobModel;
 use Tests\Support\Models\SimpleEntity;
@@ -82,25 +80,5 @@ final class MiscellaneousModelTest extends LiveModelTestCase
 
 		$error = $this->model->errors();
 		$this->assertTrue(isset($error['description']));
-	}
-
-	public function testUndefinedTypeInTransformDataToArray(): void
-	{
-		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid type "whatever" used upon transforming data to array.');
-
-		$this->createModel(JobModel::class);
-		$method = $this->getPrivateMethodInvoker($this->model, 'transformDataToArray');
-		$method([], 'whatever');
-	}
-
-	public function testEmptyDataInTransformDataToArray(): void
-	{
-		$this->expectException(DataException::class);
-		$this->expectExceptionMessage('There is no data to insert.');
-
-		$this->createModel(JobModel::class);
-		$method = $this->getPrivateMethodInvoker($this->model, 'transformDataToArray');
-		$method([], 'insert');
 	}
 }
